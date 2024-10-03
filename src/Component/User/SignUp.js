@@ -1,7 +1,7 @@
 // src/components/Signup.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Style.css'; // Import CSS for styling
+import './Signup.css'; // Import the CSS file
 import axios from 'axios';
 
 const Signup = () => {
@@ -9,9 +9,7 @@ const Signup = () => {
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
-    const LoginClick = () => {
-        navigate('/login')
-    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrorMessage(''); // Clear previous error messages
@@ -19,11 +17,11 @@ const Signup = () => {
         try {
             const response = await axios.post('http://localhost:5000/api/auth/signup', { username, password });
 
-            console.log(response.data); // Add this line to see the response
+            console.log(response.data); // Log the response
 
             if (response.data.success) {
                 alert('Signup successful!');
-                LoginClick() // Navigate to login after successful signup
+                navigate('/login'); // Navigate to login after successful signup
             } else {
                 setErrorMessage(response.data.message || 'Signup failed. Please try again.');
             }
@@ -34,12 +32,11 @@ const Signup = () => {
         }
     };
 
-
     return (
         <div className="form-container">
             <h2>Signup</h2>
             {errorMessage && <p className="error-message">{errorMessage}</p>} {/* Display error message */}
-            <form onSubmit={handleSubmit}>
+            <form className="signup-form" onSubmit={handleSubmit}>
                 <input
                     type="text"
                     placeholder="Username"

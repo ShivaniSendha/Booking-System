@@ -1,53 +1,61 @@
+// src/components/AddEvent.js
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Import toast CSS
 
-const AddEvent = () => {
+const AddEvent = ({ onClose, refreshEvents }) => {
     const [title, setTitle] = useState('');
     const [start, setStart] = useState('');
     const [end, setEnd] = useState('');
-    const [room, setRoom] = useState('');
+    const [room, setRoom] = useState(''); // Add room state
     const [errorMessage, setErrorMessage] = useState('');
     const navigate = useNavigate();
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrorMessage('');
+        setErrorMessage(''); // Reset error message
 
         const token = localStorage.getItem('token');
-        if (!token) {
-            setErrorMessage('You must be logged in to add an event.');
-            return;
-        }
-
         try {
-            // Log the data being sent
-            console.log('Data being sent:', { title, start, end, room });
-
-            const response = await axios.post('http://localhost:5000/api/bookings', { title, start, end, room }, {
+            // Make the POST request to create an event
+            const response = await axios.post('http://localhost:5000/api/bookings/Create', {
+                title,
+                start,
+                end,
+                room, // Include room in the request
+            }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            // Show success toast
+            toast.success('Event added successfully!');
 
-            if (response.status === 201) {
-                alert('Event added successfully!');
-                setTitle('');
-                setStart('');
-                setEnd('');
-                setRoom('');
-            }
-            navigate('/calendar')
+            // Optionally log the response
+            console.log('====================================');
+            console.log("Response:", response);
+            console.log('====================================');
+
+        
+
+    
+            onClose(); 
+            navigate('/calendar'); 
         } catch (error) {
-
-            const message = error.response?.data?.message || 'Failed to add event. Please try again.';
-            setErrorMessage(message);
+            if (error.response && error.response.data && error.response.data.message) {
+                setErrorMessage(error.response.data.message); // Display specific error message from the server
+            } else {
+                setErrorMessage('Failed to create event.'); // Default error message
+            }
         }
     };
 
     return (
-        <div className="form-container">
+        <div>
             <h2>Add Event</h2>
-            {errorMessage && <p className="error-message">{errorMessage}</p>} {/* Display error message */}
-            <form onSubmit={handleSubmit}>
+            {errorMessage && <p className="error-message">{errorMessage}</p>}
+            <form className="add-event-form" onSubmit={handleSubmit}>
                 <input
                     type="text"
                     placeholder="Event Title"
@@ -73,7 +81,7 @@ const AddEvent = () => {
                     <option value="">Select Room</option>
                     <option value="Room 1">Room 1</option>
                     <option value="Room 2">Room 2</option>
-                    <option value="Room 3">Room 3</option>
+                    {/* Add more room options as needed */}
                 </select>
                 <button type="submit">Add Event</button>
             </form>

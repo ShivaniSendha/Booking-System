@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticate } from '../Middleware/midleware.js';
+import authMiddleware from '../Middleware/midleware.js'
 import Booking from '../models/Booking.js';
 
 const router = express.Router();
@@ -8,7 +8,9 @@ const router = express.Router();
 // router.use(authenticate);
 
 // Create a new booking
-router.post('/Create', async (req, res) => {
+router.post('/Create', authMiddleware, async (req, res) => {
+    console.log('Received data:', req.body);
+
     const { title, start, end, room } = req.body;
 
     // Validate incoming data
@@ -18,14 +20,16 @@ router.post('/Create', async (req, res) => {
 
     try {
         const booking = await Booking.create({ title, start, end, userId: req.user.id, room });
-      
+        console.log("booking",booking);
+        
         await booking.save();
-        return res.status(201).json(booking); // Respond with the created booking
+        return res.status(201).json(booking);
     } catch (error) {
         console.error('Error creating booking:', error);
         return res.status(500).json({ message: 'Error creating booking' });
     }
 });
+
 
 // Get all bookings for the authenticated user
 router.get('/Get', async (req, res) => {

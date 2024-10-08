@@ -1,38 +1,42 @@
-// Route/Auth.js
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
-import express from 'express';
-import bcrypt from 'bcryptjs';
+import User from './../models/User.js';
+import jwt from 'jsonwebtoken'; // Ensure you import jwt for token generation
 
-const router = express.Router();
-
-// Signup
-router.post('/signup', async (req, res) => {
+// Signup function
+export const Signup = async (req, res) => {
     const { username, password } = req.body;
+
     try {
-        const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
-        const user = new User({ username, password: hashedPassword });
+        // Check if the user already exists
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(400).json({ message: 'Username already exists.' });
+        }
+
+        // Create a new user with plain text password
+        const user = new User({ username, password }); // Storing plain text password
         await user.save();
-        res.status(201).json({ message: 'User created successfully' });
+
+        return res.status(201).json({ message: 'User created successfully.' });
     } catch (error) {
         console.error('Error creating user:', error);
-        res.status(400).json({ message: 'Error creating user' });
+        return res.status(500).json({ message: 'Server error' });
     }
-});
+};
 
-// Login
-router.post('/login', async (req, res) => {
+// Login function
+export const Login = async (req, res) => {
     const { username, password } = req.body;
 
     try {
         const user = await User.findOne({ username });
+
         if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
+            return res.status(401).json({ message: 'Invalid username or password.' });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid password.' });
+        // Directly compare without bcrypt (not secure, for demonstration only)
+        if (password !== user.password) {
+            return res.status(401).json({ message: 'Invalid username or password.' });
         }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
@@ -42,26 +46,10 @@ router.post('/login', async (req, res) => {
         console.error('Login error:', error);
         return res.status(500).json({ message: 'Server error' });
     }
-});
-
-// Middleware to authenticate the token
-const authenticate = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-        return res.status(401).json({ message: 'Access denied. No token provided.' });
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
-        if (err) {
-            return res.status(400).json({ message: 'Invalid token.' });
-        }
-        req.user = decoded; // Attach user info to request
-        next();
-    });
 };
 
-// Get User Profile
-router.get('/profile/get', authenticate, async (req, res) => {
+// Profile Get function
+export const ProfileGet = async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password'); // Exclude password
         if (!user) {
@@ -72,17 +60,17 @@ router.get('/profile/get', authenticate, async (req, res) => {
         console.error('Error fetching user profile:', error);
         res.status(500).json({ message: 'Server error' });
     }
-});
+};
 
-// Update User Profile
-router.put('/profile/update', authenticate, async (req, res) => {
+// Profile Update function
+export const ProfileUpdate = async (req, res) => {
     const { username, password } = req.body;
 
     try {
         const updatedData = { username };
 
         if (password) {
-            updatedData.password = await bcrypt.hash(password, 10); // Hash new password
+            updatedData.password = password; // Store plain text password (not secure)
         }
 
         const user = await User.findByIdAndUpdate(req.user.id, updatedData, { new: true }).select('-password');
@@ -94,10 +82,10 @@ router.put('/profile/update', authenticate, async (req, res) => {
         console.error('Error updating user profile:', error);
         res.status(500).json({ message: 'Server error' });
     }
-});
+};
 
-// Delete User Profile
-router.delete('/profile/delete', authenticate, async (req, res) => {
+// Profile Delete function
+export const ProfileDelete = async (req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.user.id);
         if (!user) {
@@ -108,6 +96,4 @@ router.delete('/profile/delete', authenticate, async (req, res) => {
         console.error('Error deleting user profile:', error);
         res.status(500).json({ message: 'Server error' });
     }
-});
-
-export default router;
+};

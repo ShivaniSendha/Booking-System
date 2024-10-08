@@ -17,9 +17,12 @@
   padding: 20px;
   border: 1px solid #888;
   border-radius: 8px;
-  width: 90%; /* Width of modal */
-  max-width: 600px; /* Max width */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+  width: 90%;
+  /* Width of modal */
+  max-width: 600px;
+  /* Max width */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  /* Shadow for depth */
 }
 
 /* Close Button Styles */
@@ -67,7 +70,8 @@
 .user-profile {
   position: relative;
   display: flex;
-  align-items: center; /* Center vertically */
+  align-items: center;
+  /* Center vertically */
   justify-content: flex-end;
   margin-bottom: 100px;
 }
@@ -80,15 +84,19 @@
   border-radius: 8px;
   padding: 10px;
   z-index: 1000;
-  margin-top: 300px; /* Adjust this for proper spacing */
-  width: 200px; /* Fixed width for dropdown */
+  margin-top: 300px;
+  /* Adjust this for proper spacing */
+  width: 200px;
+  /* Fixed width for dropdown */
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .dropdown-menu {
-    width: 90%; /* Full width on smaller screens */
-    left: 0; /* Align left */
+    width: 90%;
+    /* Full width on smaller screens */
+    left: 0;
+    /* Align left */
   }
 }
 
@@ -113,17 +121,20 @@
 /* Create Event Button Styles */
 .create-event-button {
   padding: 10px 15px;
-  background-color: #28a745; /* Green color */
+  background-color: #28a745;
+  /* Green color */
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  margin-left: 10px; /* Space between avatar and button */
+  margin-left: 10px;
+  /* Space between avatar and button */
 }
 
 .create-event-button:hover {
-  background-color: #218838; /* Darker green on hover */
+  background-color: #218838;
+  /* Darker green on hover */
 }
 
 /* Avatar Styles */
@@ -131,7 +142,8 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #007bff; /* Blue color for the avatar */
+  background-color: #007bff;
+  /* Blue color for the avatar */
   color: white;
   display: flex;
   justify-content: center;
@@ -139,25 +151,99 @@
   cursor: pointer;
   font-weight: bold;
   font-size: 18px;
-  margin-right: 10px; /* Space between avatar and dropdown */
+  margin-right: 10px;
+  /* Space between avatar and dropdown */
 }
 
 /* Responsive Styles */
 @media (max-width: 768px) {
   .header {
-    flex-direction: column; /* Stack header elements */
-    align-items: flex-start; /* Align to the start */
+    flex-direction: column;
+    /* Stack header elements */
+    align-items: flex-start;
+    /* Align to the start */
   }
 
   .calendar-container {
-    padding: 10px; /* Add padding for smaller screens */
+    padding: 10px;
+    /* Add padding for smaller screens */
   }
 
   .modal-content {
-    width: 95%; /* Adjust modal width */
+    width: 95%;
+    /* Adjust modal width */
   }
 
   .create-event-button {
-    width: 100%; /* Full width button on smaller screens */
+    width: 100%;
+    /* Full width button on smaller screens */
   }
+}
+
+/* Styles for current date */
+.current-date {
+  background-color: blue;
+  /* Blue background for today's date */
+  color: white;
+  /* Change text color to white */
+  border-radius: 50%;
+  /* Make it circular */
+  padding: 10px;
+  /* Add some padding for the circle effect */
+}
+
+/* Optional: Add styles for the text inside the circle */
+.current-date span {
+  color: white;
+  /* Ensure the text is white */
+  font-weight: bold;
+  /* Make the text bold */
+}
+
+/* Styles for current date */
+.current-date {
+  position: relative;
+  /* Make sure it's positioned for the circle */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.current-date::before {
+  content: '';
+  position: absolute;
+  background-color: blue;
+  /* Blue background */
+  border-radius: 50%;
+  /* Make it circular */
+  width: 40px;
+  /* Circle diameter */
+  height: 40px;
+  /* Circle diameter */
+  top: 50%;
+  /* Center vertically */
+  left: 50%;
+  /* Center horizontally */
+  transform: translate(-50%, -50%);
+  /* Center the circle */
+  z-index: -1;
+  /* Send it behind the text */
+}
+
+.current-date span {
+  color: white;
+  /* Ensure the text is white */
+  font-weight: bold;
+  /* Make the text bold */
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  z-index: 1000;
 }

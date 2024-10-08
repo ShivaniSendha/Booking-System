@@ -6,7 +6,7 @@ dotenv.config(); // Load environment variables from .env file
 
 const connectDB = async () => {
     try {
-        await mongoose.connect('mongodb://localhost:27017/booking-system', {
+        await mongoose.connect('mongodb://localhost:27017/Google-Booking-system', {
             useNewUrlParser: true, // Use the new URL parser
             useUnifiedTopology: true, // Use the new connection management engine
         });

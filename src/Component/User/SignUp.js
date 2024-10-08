@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import './Signup.css'; // Import the CSS file
 import axios from 'axios';
 
+import swal from 'sweetalert2';
+
 const Signup = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -19,8 +21,12 @@ const Signup = () => {
 
             console.log(response.data); // Log the response
 
-            if (response.data.success) {
-                alert('Signup successful!');
+            if (response.status===201) {
+                swal.fire({
+                    title: "Success",
+                    text: "Signup Successfully done!",
+                    icon: "success"
+                });
                 navigate('/login'); // Navigate to login after successful signup
             } else {
                 setErrorMessage(response.data.message || 'Signup failed. Please try again.');

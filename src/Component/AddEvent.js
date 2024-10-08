@@ -1,90 +1,170 @@
-// src/components/AddEvent.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // Import toast CSS
+import moment from 'moment';
+import './AddEvent.css'; // Import CSS file
+import Swal from 'sweetalert2';
 
-const AddEvent = ({ onClose, refreshEvents }) => {
+const roomOptions = [
+    { value: 'conference_1', label: '1. Conference 1' },
+    { value: 'conference_2', label: '2. Conference 2' },
+    { value: 'think_tank', label: '3. Think Tank' },
+];
+
+const AddEvent = ({ onClose, refreshEvents, eventToEdit }) => {
     const [title, setTitle] = useState('');
-    const [start, setStart] = useState('');
-    const [end, setEnd] = useState('');
-    const [room, setRoom] = useState(''); // Add room state
-    const [errorMessage, setErrorMessage] = useState('');
-    const navigate = useNavigate();
+    const [start, setStart] = useState(new Date());
+    const [end, setEnd] = useState(new Date(new Date().getTime() + 60 * 60 * 1000)); // Set end time 1 hour after start
+    const [room, setRoom] = useState('');
+
+    useEffect(() => {
+        if (eventToEdit) {
+            setTitle(eventToEdit.title);
+            setStart(new Date(eventToEdit.start));
+            setEnd(new Date(eventToEdit.end));
+            setRoom(eventToEdit.room); // Ensure room is set correctly
+        } else {
+            setTitle('');
+            setStart(new Date());
+            setEnd(new Date(new Date().getTime() + 60 * 60 * 1000));
+            setRoom('');
+        }
+    }, [eventToEdit]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrorMessage(''); // Reset error message
-
         const token = localStorage.getItem('token');
         try {
-            // Make the POST request to create an event
-            const response = await axios.post('http://localhost:5000/api/bookings/Create', {
-                title,
-                start,
-                end,
-                room, // Include room in the request
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            // Show success toast
-            toast.success('Event added successfully!');
-
-            // Optionally log the response
-            console.log('====================================');
-            console.log("Response:", response);
-            console.log('====================================');
-
-        
-
-    
-            onClose(); 
-            navigate('/calendar'); 
-        } catch (error) {
-            if (error.response && error.response.data && error.response.data.message) {
-                setErrorMessage(error.response.data.message); // Display specific error message from the server
+            if (eventToEdit) {
+                // Update existing event
+                await axios.put(`http://localhost:5000/api/bookings/Update/${eventToEdit.id}`, {
+                    title,
+                    start,
+                    end,
+                    room,
+                }, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                Swal.fire({
+                    title: "Success",
+                    text: "Update Successfully done!",
+                    icon: "success"
+                });
             } else {
-                setErrorMessage('Failed to create event.'); // Default error message
+                // Create new event
+                await axios.post('http://localhost:5000/api/bookings/Create', {
+                    title,
+                    start,
+                    end,
+                    room,
+                    userId: JSON.parse(localStorage.getItem('user')).id
+                }, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                Swal.fire({
+                    title: "Success",
+                    text: "Event Create Successfully done!",
+                    icon: "success"
+                });
+            }
+            onClose();
+            refreshEvents();
+        } catch (error) {
+            if (error.response?.status === 409) {
+                Swal.fire({
+                    title: "Alert",
+                    text: "This room is already booked for the selected time",
+                    icon: "warning"
+                });
+
+            } else {
+                console.error('Error saving event:', error);
             }
         }
     };
 
+    const handleDelete = async () => {
+        const token = localStorage.getItem('token');
+        try {
+            await axios.delete(`http://localhost:5000/api/bookings/Delete/${eventToEdit.id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            Swal.fire({
+                title: "Success",
+                text: "Event Delete Successfully done!",
+                icon: "success"
+            });
+            onClose();
+            refreshEvents();
+        } catch (error) {
+            console.error('Error deleting event:', error);
+        }
+    };
+
     return (
-        <div>
-            <h2>Add Event</h2>
-            {errorMessage && <p className="error-message">{errorMessage}</p>}
-            <form className="add-event-form" onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    placeholder="Event Title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    required
-                />
-                <input
-                    type="datetime-local"
-                    placeholder="Start Time"
-                    value={start}
-                    onChange={(e) => setStart(e.target.value)}
-                    required
-                />
-                <input
-                    type="datetime-local"
-                    placeholder="End Time"
-                    value={end}
-                    onChange={(e) => setEnd(e.target.value)}
-                    required
-                />
-                <select value={room} onChange={(e) => setRoom(e.target.value)} required>
-                    <option value="">Select Room</option>
-                    <option value="Room 1">Room 1</option>
-                    <option value="Room 2">Room 2</option>
-                    {/* Add more room options as needed */}
-                </select>
-                <button type="submit">Add Event</button>
-            </form>
+        <div className="modal">
+            <div className="modal-content">
+                <h2>{eventToEdit ? 'Update Event' : 'Add New Event'}</h2>
+                <form onSubmit={handleSubmit}>
+                    <input
+                        type="text"
+                        placeholder="Event Title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        required
+                    />
+                    <label>Start Date:</label>
+                    <input
+                        type="date"
+                        value={moment(start).format('YYYY-MM-DD')}
+                        onChange={(e) => {
+                            const newStart = new Date(`${e.target.value}T${start.toTimeString().slice(0, 5)}`);
+                            setStart(newStart);
+                        }}
+                        required
+                    />
+                    <label>Start Time:</label>
+                    <input
+                        type="time"
+                        value={moment(start).format('HH:mm')}
+                        onChange={(e) => {
+                            const newStart = new Date(`${start.toISOString().split('T')[0]}T${e.target.value}`);
+                            setStart(newStart);
+                        }}
+                        required
+                    />
+                    <label>End Time:</label>
+                    <input
+                        type="time"
+                        value={moment(end).format('HH:mm')}
+                        onChange={(e) => {
+                            const newEnd = new Date(`${end.toISOString().split('T')[0]}T${e.target.value}`);
+                            setEnd(newEnd);
+                        }}
+                        required
+                    />
+                    <label htmlFor="room">Select Room:</label>
+                    <select
+                        id="room"
+                        value={room}
+                        onChange={(e) => setRoom(e.target.value)}
+                        required
+                    >
+                        <option value="" disabled>Select a room</option>
+                        {roomOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                    <button type="submit">{eventToEdit ? 'Update Event' : 'Create Event'}</button>
+                    <button type="button" onClick={onClose}>Cancel</button>
+                    {eventToEdit && (
+                        <button type="button" onClick={handleDelete} style={{ backgroundColor: 'red', color: 'white' }}>
+                            Delete Event
+                        </button>
+                    )}
+                </form>
+            </div>
         </div>
     );
 };

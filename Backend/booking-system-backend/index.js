@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import connectDB from './db/connection.js';
-import authRoutes from './Route/Auth.js';
+import authRoutes from './Route/Users.js';
 import bookingRoutes from './Route/Booking.js'; // Adjusted to ensure correct import path
 import dotenv from 'dotenv';
 
